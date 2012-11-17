@@ -1,0 +1,104 @@
+<project name="ProjectWithJunit" default="compile" basedir=".">
+    <description>
+        simple example build file
+    </description>
+  <!-- set global properties for this build -->
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+  <property name="test" location="test"/>
+  <property name="lib" location="lib"/>
+  <!--property name="dist"  location="dist"/-->
+
+  <taskdef classpath="cobertura.jar" resource="tasks.properties" />
+  
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build}"/>
+	<mkdir dir="${lib}"/>
+	<mkdir dir="instrumented"/>
+  </target>
+
+  <target name="compile" depends="init"
+        description="compile the source " >
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac debug="yes" srcdir="${src}" destdir="${build}"/>
+  </target>
+
+
+  <target name="clean"
+        description="clean up" >
+    <!-- Delete the ${build} and ${dist} directory trees -->
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+	<delete dir="${lib}"/>
+	<delete dir="report"/>
+	<delete dir="covertestreport"/>
+	<delete dir="instrumented"/>
+  </target>
+  
+  <target name="test" depends="compile"
+		description="junit test">
+	<javac debug="yes" srcdir="${test}" destdir="${build}"/>
+  </target>
+  
+   <target name="execute" depends="compile"
+		description="run">
+	<java classname="cn.dc.Run" classpath="build"/>
+  </target>
+	<target name="report" depends="junit">   
+       <junitreport id="myJUnitReport" taskname="reported" todir="report" description="Junit Report">   
+           <fileset dir="report">   
+              <include name="TEST-*.xml" />   
+           </fileset>   
+           <report todir="report/html" />   
+       </junitreport>   
+    </target>   
+	
+	<target name="junit" depends="test">   
+       <mkdir dir="report/html" />   
+       <junit printsummary="yes" haltonerror="yes" haltonfailure="yes" fork="yes">   
+           <formatter type="plain" usefile="false" />   
+           <formatter type="xml" />   
+           <test name="cn.dc.TestAccount" todir="report" />   
+           <classpath refid="master-classpath" />  
+       </junit>   
+    </target>   
+	 <target name="coverage-report" depends="cover-test">   
+        <cobertura-report srcdir="src" destdir="instrumented" />   
+    </target>   
+    <target name="cover-test" depends="instrument">   
+        <mkdir dir="covertestreport" />   
+        <junit dir="./" failureproperty="test.failure" printSummary="yes" fork="true" haltonerror="true">   
+            <classpath location="cobertura.jar" />   
+            <classpath location="instrumented" />   
+            <classpath>   
+                <fileset dir="lib">   
+                    <include name="**/*.jar" />   
+                </fileset>   
+                <pathelement path="${build}" />   
+            </classpath>   
+            <batchtest todir="${test}">   
+                <fileset dir="test">   
+                    <include name="Test**/*.java" />   
+                </fileset>   
+            </batchtest>   
+        </junit>   
+    </target>   
+    <target name="instrument" depends="report">   
+        <cobertura-instrument todir="instrumented">   
+            <fileset dir="${build}">   
+                <include name="**/*.class" />   
+                <exclude name="Test**/*.class" />   
+            </fileset>   
+        </cobertura-instrument>   
+    </target>   
+	
+	 <path id="master-classpath">   
+       <fileset dir="lib">   
+           <include name="*.jar" />   
+       </fileset>   
+       <pathelement path="${build}" />   
+    </path>   
+</project>
