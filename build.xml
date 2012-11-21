@@ -53,7 +53,7 @@
 	</target>
 
 	<target name="compile-source" depends="init" description="compiles all .java files in source directory">
-		<javac debug="yes" srcdir="${source.dir}" destdir="${classes.dir}" classpathref="build.classpath" />
+		<javac encoding="utf-8" debug="yes" srcdir="${source.dir}" destdir="${classes.dir}" classpathref="build.classpath" />
 	</target>
 
 	<target name="instrument" depends="compile-source">
@@ -77,7 +77,7 @@
 	</target>
 
 	<target name="complie-tests" depends="jar" description="compiles all .java files in test directory ">
-		<javac debug="yes" srcdir="${test.source.dir}" destdir="${test.classes.dir}" classpathref="build.classpath">
+		<javac encoding="utf-8"  debug="yes" srcdir="${test.source.dir}" destdir="${test.classes.dir}" classpathref="build.classpath">
 		</javac>
 	</target>
 
@@ -145,4 +145,16 @@
 	<target name="coverage" depends="jar,instrument,test,converage-report,alternate-coverage-report"></target>
 	
 	<target name="all" depends="coverage,javadoc" />
+	<target name="execute" depends="complie-tests">
+		<java classname="cn.dc.Account1test">
+			<jvmarg value="-Dnet.sourceforge.cobertura.datafile=cobertura.ser"/>
+			<classpath location="${instrumented.dir}" />
+			
+			<classpath>
+				<path refid="build.classpath"></path>
+				<pathelement location="${test.classes.dir}" />
+				<pathelement location="${classes.dir}" />
+			</classpath>
+		</java>
+	</target>
 </project>
